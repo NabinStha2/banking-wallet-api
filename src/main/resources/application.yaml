@@ -5,6 +5,10 @@ spring:
   application:
     name: wallet-api
 
+  config:
+    import:
+      - optional:file:.env[.properties]
+
   datasource:
     url: "${DB_URL:jdbc:mysql://localhost:3306/${DB_NAME:wallet}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&sessionVariables=innodb_lock_wait_timeout=5}"
     username: "${DB_USER:root}"
@@ -48,6 +52,7 @@ logging:
     org.springframework.security: INFO
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
+    org.flywaydb: DEBUG
 
 app:
   jwt:
