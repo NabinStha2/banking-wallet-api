@@ -13,9 +13,9 @@
     </parent>
 
     <groupId>com.nabin</groupId>
-    <artifactId>wallet-api</artifactId>
+    <artifactId>banking-wallet-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>wallet-api</name>
+    <name>banking-wallet-api</name>
     <description>Banking and Wallet REST API</description>
 
     <properties>

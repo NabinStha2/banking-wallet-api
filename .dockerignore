@@ -1,0 +1,10 @@
+.git
+.idea
+.junie
+.vscode
+target
+mysql-data
+.env
+.env.*
+*.log
+.DS_Store

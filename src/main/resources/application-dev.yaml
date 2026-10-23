@@ -1,0 +1,27 @@
+# Local development only. Activate with: SPRING_PROFILES_ACTIVE=dev
+# SQL logging is useful locally; bind values are deliberately not logged.
+
+spring:
+  datasource:
+    username: "${DB_APP_USER:banking_wallet_app}"
+    password: "${DB_APP_PASSWORD:dev-only-db-password}"
+
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+
+management:
+  endpoint:
+    health:
+      show-details: when_authorized
+
+logging:
+  level:
+    com.nabin: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.flywaydb: DEBUG
+
+app:
+  jwt:
+    secret: "${JWT_SECRET:dev-only-secret-change-me-please-0123456789}"
