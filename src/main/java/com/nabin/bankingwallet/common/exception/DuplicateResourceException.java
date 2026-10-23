@@ -1,0 +1,10 @@
+package com.nabin.bankingwallet.common.exception;
+
+import org.springframework.http.HttpStatus;
+
+public class DuplicateResourceException extends BusinessException {
+
+    public DuplicateResourceException(String message) {
+        super(HttpStatus.CONFLICT, "DUPLICATE_RESOURCE", message);
+    }
+}

@@ -12,7 +12,17 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
-@Table(name = "accounts")
+@Table(name = "accounts"
+//        ,
+//        indexes = {
+//                @Index(name = "idx_account_user_id",
+//                        columnList = "user_id")
+//        },
+//        uniqueConstraints = {
+//                @UniqueConstraint(name = "uk_account_account_number",
+//                        columnNames = "account_number")
+//        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
