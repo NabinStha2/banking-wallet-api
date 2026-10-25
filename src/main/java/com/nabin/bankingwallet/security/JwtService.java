@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,7 @@ import java.util.Date;
 @Service
 public class JwtService {
     private final SecretKey secretKey;
+    @Getter
     private final long expirationSeconds;
 
 
@@ -63,7 +65,7 @@ public class JwtService {
         }
     }
 
-    public long extractExpiration(String token) {
+    public long getExpiration(String token) {
         Date expiration = parse(token).getExpiration();
 
         return Math.max(

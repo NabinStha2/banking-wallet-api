@@ -25,7 +25,7 @@ public class UserPrincipal implements UserDetails {
     public UserPrincipal(User user) {
         this.email = user.getEmail();
         this.passwordHash = user.getPasswordHash();
-        this.enabled = user.isEnabled();
+        this.enabled = user.isEnabled() && user.isEmailVerified();
         this.userRole = user.getUserRole();
         this.id = user.getId();
     }

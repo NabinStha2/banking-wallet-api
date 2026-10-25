@@ -5,6 +5,7 @@ import com.nabin.bankingwallet.auth.dto.request.LoginRequest;
 import com.nabin.bankingwallet.auth.dto.request.RegisterRequestDto;
 import com.nabin.bankingwallet.auth.dto.request.ResendVerificationRequest;
 import com.nabin.bankingwallet.auth.dto.request.VerifyEmailRequest;
+import com.nabin.bankingwallet.auth.dto.response.LoginResponse;
 import com.nabin.bankingwallet.auth.verification.EmailVerificationService;
 import com.nabin.bankingwallet.user.UserService;
 import com.nabin.bankingwallet.user.dto.UserResponse;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final UserService userService;
     private final EmailVerificationService emailVerificationService;
+    private final AuthService authService;
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(
@@ -56,13 +58,13 @@ public class AuthController {
                 .build();
     }
 
-//    @PostMapping("/login")
-//    public ResponseEntity<UserResponse> login(
-//            @Valid
-//            @RequestBody
-//            LoginRequest loginRequest) {
-//        return ResponseEntity
-//                .ok()
-//                .body(userService.login(loginRequest));
-//    }
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(
+            @Valid
+            @RequestBody
+            LoginRequest loginRequest) {
+        return ResponseEntity
+                .ok()
+                .body(authService.login(loginRequest));
+    }
 }
