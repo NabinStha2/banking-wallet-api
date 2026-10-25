@@ -1,6 +1,7 @@
 package com.nabin.bankingwallet.auth;
 
 
+import com.nabin.bankingwallet.auth.dto.request.LoginRequest;
 import com.nabin.bankingwallet.auth.dto.request.RegisterRequestDto;
 import com.nabin.bankingwallet.auth.dto.request.ResendVerificationRequest;
 import com.nabin.bankingwallet.auth.dto.request.VerifyEmailRequest;
@@ -27,8 +28,7 @@ public class AuthController {
     public ResponseEntity<UserResponse> register(
             @Valid
             @RequestBody
-            RegisterRequestDto registerRequestDto
-                                                ) {
+            RegisterRequestDto registerRequestDto) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(userService.register(registerRequestDto));
@@ -55,4 +55,14 @@ public class AuthController {
                 .accepted()
                 .build();
     }
+
+//    @PostMapping("/login")
+//    public ResponseEntity<UserResponse> login(
+//            @Valid
+//            @RequestBody
+//            LoginRequest loginRequest) {
+//        return ResponseEntity
+//                .ok()
+//                .body(userService.login(loginRequest));
+//    }
 }
