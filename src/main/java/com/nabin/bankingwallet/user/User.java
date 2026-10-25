@@ -47,6 +47,13 @@ public class User {
             updatable = false)
     private Instant createdAt;
 
+    @Column(name = "email_verified",
+            nullable = false)
+    private boolean emailVerified = false;
+
+    @Column(name = "last_login")
+    private Instant lastLogin;
+
     @PrePersist
     void onCreate() {
         createdAt = Instant.now();
