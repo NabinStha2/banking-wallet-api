@@ -1,6 +1,7 @@
 package com.nabin.bankingwallet.user;
 
 import com.nabin.bankingwallet.auth.dto.request.RegisterRequestDto;
+import com.nabin.bankingwallet.auth.verification.EmailVerificationService;
 import com.nabin.bankingwallet.common.exception.DuplicateResourceException;
 import com.nabin.bankingwallet.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailVerificationService emailVerificationService;
 
     @Transactional
     public UserResponse register(RegisterRequestDto registerRequestDto) {
@@ -46,6 +48,8 @@ public class UserService {
             }
             throw exception;
         }
+
+        emailVerificationService.sendInitialVerification(newUser);
 
         return UserResponse.fromUser(newUser);
     }

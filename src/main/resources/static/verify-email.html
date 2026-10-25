@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <title>Verify your email</title>
+</head>
+<body>
+<main>
+    <h1>Verify your email</h1>
+    <p id="message">Confirm that you own this email address.</p>
+    <button id="verify" type="button">Verify email</button>
+</main>
+<script>
+    const token = new URLSearchParams(window.location.search).get("token");
+    const button = document.getElementById("verify");
+    const message = document.getElementById("message");
+
+    if (!token) {
+        button.disabled = true;
+        message.textContent = "This verification link is missing its token.";
+    }
+
+    button.addEventListener("click", async () => {
+        button.disabled = true;
+        message.textContent = "Verifying…";
+
+        try {
+            const response = await fetch("/api/v1/auth/verify-email", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token })
+            });
+
+            if (response.ok) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+                message.textContent = "Your email is verified. You can return to the app.";
+            } else {
+                message.textContent = "This verification link is invalid, expired, or already used.";
+            }
+        } catch {
+            message.textContent = "Verification could not be completed. Please try again later.";
+            button.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>

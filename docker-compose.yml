@@ -23,6 +23,12 @@ services:
       SPRING_DATASOURCE_URL: "jdbc:mysql://mysqldb:3306/${DB_NAME:?DB_NAME is required}?sslMode=${MYSQL_SSL_MODE:-DISABLED}&allowPublicKeyRetrieval=true&serverTimezone=UTC&sessionVariables=innodb_lock_wait_timeout=5"
       SPRING_DATASOURCE_USERNAME: ${DB_APP_USER:-banking_wallet_app}
       SPRING_DATASOURCE_PASSWORD: ${DB_APP_PASSWORD:?DB_APP_PASSWORD is required}
+      SPRING_MAIL_HOST: mailpit
+      SPRING_MAIL_PORT: "1025"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "false"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "false"
+      APP_EMAIL_VERIFICATION_PAGE_URL: ${EMAIL_VERIFICATION_PAGE_URL:-http://localhost:${SERVER_PORT:-8000}/verify-email.html}
+      APP_EMAIL_VERIFICATION_FROM: ${EMAIL_FROM:-no-reply@banking-wallet.local}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       JWT_EXPIRATION_SECONDS: ${JWT_EXPIRATION_SECONDS:-3600}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
@@ -30,6 +36,8 @@ services:
     depends_on:
       mysqldb:
         condition: service_healthy
+      mailpit:
+        condition: service_started
     healthcheck:
       test: [ "CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8080/actuator/health" ]
       interval: 30s
@@ -55,6 +63,13 @@ services:
       start_period: 30s
     volumes:
       - mysql_data:/var/lib/mysql
+
+  mailpit:
+    image: axllent/mailpit:v1.30.6
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
 
 volumes:
   mysql_data:

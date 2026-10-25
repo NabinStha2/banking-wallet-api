@@ -1,7 +1,10 @@
-package com.nabin.bankingwallet.auth.dto;
+package com.nabin.bankingwallet.auth;
 
 
 import com.nabin.bankingwallet.auth.dto.request.RegisterRequestDto;
+import com.nabin.bankingwallet.auth.dto.request.ResendVerificationRequest;
+import com.nabin.bankingwallet.auth.dto.request.VerifyEmailRequest;
+import com.nabin.bankingwallet.auth.verification.EmailVerificationService;
 import com.nabin.bankingwallet.user.UserService;
 import com.nabin.bankingwallet.user.dto.UserResponse;
 import jakarta.validation.Valid;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
     private final UserService userService;
+    private final EmailVerificationService emailVerificationService;
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(
@@ -28,5 +32,27 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(userService.register(registerRequestDto));
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<Void> verifyEmail(
+            @Valid
+            @RequestBody
+            VerifyEmailRequest request) {
+        emailVerificationService.verify(request.token());
+        return ResponseEntity
+                .noContent()
+                .build();
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<Void> resendVerification(
+            @Valid
+            @RequestBody
+            ResendVerificationRequest request) {
+        emailVerificationService.resendVerification(request.email());
+        return ResponseEntity
+                .accepted()
+                .build();
     }
 }

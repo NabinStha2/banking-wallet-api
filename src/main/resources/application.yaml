@@ -70,6 +70,12 @@ app:
     secret: "${JWT_SECRET}"
     expiration-seconds: ${JWT_EXPIRATION_SECONDS:3600}
 
+  email-verification:
+    page-url: ${EMAIL_VERIFICATION_PAGE_URL:http://localhost:8080/verify-email.html}
+    from: ${EMAIL_FROM:no-reply@banking-wallet.local}
+    token-ttl: ${EMAIL_VERIFICATION_TOKEN_TTL:24h}
+    resend-cooldown: ${EMAIL_VERIFICATION_RESEND_COOLDOWN:1m}
+
   admin:
     email: "${ADMIN_EMAIL:}"
     password: "${ADMIN_PASSWORD:}"
