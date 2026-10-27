@@ -12,17 +12,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
-@Table(name = "accounts"
-//        ,
-//        indexes = {
-//                @Index(name = "idx_account_user_id",
-//                        columnList = "user_id")
-//        },
-//        uniqueConstraints = {
-//                @UniqueConstraint(name = "uk_account_account_number",
-//                        columnNames = "account_number")
-//        }
-)
+@Table(name = "accounts")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -64,6 +54,9 @@ public class Account {
             scale = 2)
     private BigDecimal dailyLimit = new BigDecimal("5000.00");
 
+    /**
+     * Optimistic-lock column. The app uses pessimistic locks; this is a second safety net.
+     */
     @Version
     private Long version;
 
