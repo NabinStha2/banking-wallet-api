@@ -1,6 +1,7 @@
 package com.nabin.bankingwallet.transaction;
 
 import com.nabin.bankingwallet.account.Account;
+import com.nabin.bankingwallet.account.AccountRules;
 import com.nabin.bankingwallet.account.AccountService;
 import com.nabin.bankingwallet.common.exception.InsufficientFundsException;
 import com.nabin.bankingwallet.common.util.MoneyUtils;
@@ -20,11 +21,13 @@ import java.util.UUID;
 public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final AccountService accountService;
+    private final AccountRules accountRules;
 
     @Transactional
     public TransactionResponse deposit(Long userId, Long accountId, MoneyRequest moneyRequest) {
         BigDecimal amount = MoneyUtils.normalize(moneyRequest.amount());
         Account account = accountService.getOwnedForUpdate(accountId, userId);
+        accountRules.assertActive(account);
 
         account.setBalance(account
                                    .getBalance()
@@ -42,11 +45,9 @@ public class TransactionService {
         BigDecimal amount = MoneyUtils.normalize(moneyRequest.amount());
         Account account = accountService.getOwnedForUpdate(accountId, userId);
 
-        if (account
-                    .getBalance()
-                    .compareTo(amount) < 0) {
-            throw new InsufficientFundsException();
-        }
+        accountRules.assertActive(account);
+        accountRules.assertSufficientFunds(account, amount);
+        accountRules.assertDailyLimitNotExceeded(account, amount);
 
         account.setBalance(account
                                    .getBalance()
