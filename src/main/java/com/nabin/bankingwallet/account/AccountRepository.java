@@ -25,4 +25,12 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
             Long id,
             @Param("userId")
             Long userId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT acc from Account acc where acc.id=:id")
+    Optional<Account> findByIdForUpdate(
+            @Param("id")
+            Long id);
+
+    Optional<Account> findByAccountNumber(String accountNumber);
 }
