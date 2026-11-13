@@ -30,7 +30,7 @@ public class TransferService {
     public TransferResponse transfer(Long userId, TransferRequest transferRequest) {
         BigDecimal amount = MoneyUtils.normalize(transferRequest.amount());
 
-        // Ownership / existence checks happen before locking so we fail fast with a
+        // Ownership / existence checks happen before locking, so we fail fast with a
         // 404 rather than acquiring a lock on an account that doesn't belong to the caller.
         Account fromAccount = accountRepository
                 .findByIdAndUser_Id(transferRequest.fromAccountId(), userId)
@@ -52,14 +52,14 @@ public class TransferService {
         if (fromAccount
                 .getId()
                 .equals(toAccount.getId())) {
-            throw new BusinessException(HttpStatus.UNPROCESSABLE_ENTITY, "SELF_TRANSFER",
+            throw new BusinessException(HttpStatus.UNPROCESSABLE_CONTENT, "SELF_TRANSFER",
                                         "Cannot transfer to the same account");
         }
 
         if (!from
                 .getCurrency()
                 .equals(to.getCurrency())) {
-            throw new BusinessException(HttpStatus.UNPROCESSABLE_ENTITY, "CURRENCY_MISMATCH",
+            throw new BusinessException(HttpStatus.UNPROCESSABLE_CONTENT, "CURRENCY_MISMATCH",
                                         "Cannot transfer between accounts with different currencies");
         }
 

@@ -6,7 +6,7 @@ public class DailyLimitExceededException extends BusinessException {
 
     public DailyLimitExceededException() {
         super(
-                HttpStatus.UNPROCESSABLE_ENTITY,
+                HttpStatus.UNPROCESSABLE_CONTENT,
                 "DAILY_LIMIT_EXCEEDED",
                 "Daily outgoing limit exceeded"
         );

@@ -6,7 +6,7 @@ public class InsufficientFundsException extends BusinessException {
 
     public InsufficientFundsException() {
         super(
-                HttpStatus.UNPROCESSABLE_ENTITY,
+                HttpStatus.UNPROCESSABLE_CONTENT,
                 "INSUFFICIENT_FUNDS",
                 "Balance is lower than requested amount"
         );
