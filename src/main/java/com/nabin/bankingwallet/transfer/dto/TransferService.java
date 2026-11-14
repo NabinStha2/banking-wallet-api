@@ -6,12 +6,15 @@ import com.nabin.bankingwallet.account.AccountRules;
 import com.nabin.bankingwallet.common.exception.BusinessException;
 import com.nabin.bankingwallet.common.exception.ResourceNotFoundException;
 import com.nabin.bankingwallet.common.util.MoneyUtils;
+import com.nabin.bankingwallet.idempotency.IdempotencyService;
+import com.nabin.bankingwallet.idempotency.IdempotencyUtils;
 import com.nabin.bankingwallet.transaction.Transaction;
 import com.nabin.bankingwallet.transaction.TransactionRepository;
 import com.nabin.bankingwallet.transaction.TransactionType;
 import com.nabin.bankingwallet.transfer.dto.request.TransferRequest;
 import com.nabin.bankingwallet.transfer.dto.response.TransferResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,14 +23,38 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class TransferService {
+
     private final AccountRepository accountRepository;
     private final AccountRules accountRules;
     private final TransactionRepository transactionRepository;
+    private final IdempotencyService idempotencyService;
+    private final IdempotencyUtils idempotencyUtils;
 
+    /**
+     * Runs the transfer under an idempotency key when the client supplies one.
+     * Without a key the transfer executes once and no idempotency row is written.
+     */
     @Transactional
-    public TransferResponse transfer(Long userId, TransferRequest transferRequest) {
+    public TransferResponse transfer(Long userId, TransferRequest transferRequest, String idempotencyKey) {
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            return executeTransfer(userId, transferRequest);
+        }
+
+        String requestHash = idempotencyUtils.generateHash(transferRequest);
+        return idempotencyService.execute(
+                userId,
+                idempotencyKey.trim(),
+                requestHash,
+                TransferResponse.class,
+                () -> executeTransfer(userId, transferRequest));
+    }
+
+    /** The actual transfer logic. Runs inside the idempotency transaction. */
+    @Transactional
+    public TransferResponse executeTransfer(Long userId, TransferRequest transferRequest) {
         BigDecimal amount = MoneyUtils.normalize(transferRequest.amount());
 
         // Ownership / existence checks happen before locking, so we fail fast with a
@@ -53,14 +80,14 @@ public class TransferService {
                 .getId()
                 .equals(toAccount.getId())) {
             throw new BusinessException(HttpStatus.UNPROCESSABLE_CONTENT, "SELF_TRANSFER",
-                                        "Cannot transfer to the same account");
+                    "Cannot transfer to the same account");
         }
 
         if (!from
                 .getCurrency()
                 .equals(to.getCurrency())) {
             throw new BusinessException(HttpStatus.UNPROCESSABLE_CONTENT, "CURRENCY_MISMATCH",
-                                        "Cannot transfer between accounts with different currencies");
+                    "Cannot transfer between accounts with different currencies");
         }
 
         accountRules.assertActive(from);

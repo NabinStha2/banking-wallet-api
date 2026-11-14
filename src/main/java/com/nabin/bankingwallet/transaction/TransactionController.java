@@ -6,7 +6,11 @@ import com.nabin.bankingwallet.transaction.dto.response.TransactionResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/accounts/{accountId}")
@@ -18,23 +22,27 @@ public class TransactionController {
     public TransactionResponse deposit(
             @AuthenticationPrincipal
             UserPrincipal principal,
-            @PathVariable
+            @org.springframework.web.bind.annotation.PathVariable
             Long accountId,
             @Valid
             @RequestBody
-            MoneyRequest moneyRequest) {
-        return transactionService.deposit(principal.getId(), accountId, moneyRequest);
+            MoneyRequest moneyRequest,
+            @RequestHeader(name = "Idempotency-Key", required = false)
+            String idempotencyKey) {
+        return transactionService.deposit(principal.getId(), accountId, moneyRequest, idempotencyKey);
     }
 
     @PostMapping("/withdraw")
     public TransactionResponse withdraw(
             @AuthenticationPrincipal
             UserPrincipal principal,
-            @PathVariable
+            @org.springframework.web.bind.annotation.PathVariable
             Long accountId,
             @Valid
             @RequestBody
-            MoneyRequest moneyRequest) {
-        return transactionService.withdraw(principal.getId(), accountId, moneyRequest);
+            MoneyRequest moneyRequest,
+            @RequestHeader(name = "Idempotency-Key", required = false)
+            String idempotencyKey) {
+        return transactionService.withdraw(principal.getId(), accountId, moneyRequest, idempotencyKey);
     }
 }

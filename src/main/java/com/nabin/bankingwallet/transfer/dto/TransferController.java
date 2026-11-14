@@ -20,17 +20,18 @@ public class TransferController {
 
     private final TransferService transferService;
 
-
     @PostMapping
     public ResponseEntity<TransferResponse> transfer(
             @AuthenticationPrincipal
             UserPrincipal principal,
             @Valid
             @RequestBody
-            TransferRequest transferRequest
-                                                    ) {
+            TransferRequest transferRequest,
+            @org.springframework.web.bind.annotation.RequestHeader(name = "Idempotency-Key", required = false)
+            String idempotencyKey
+    ) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(transferService.transfer(principal.getId(), transferRequest));
+                .body(transferService.transfer(principal.getId(), transferRequest, idempotencyKey));
     }
 }

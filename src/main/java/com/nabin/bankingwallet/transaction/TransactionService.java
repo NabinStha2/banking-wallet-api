@@ -5,6 +5,8 @@ import com.nabin.bankingwallet.account.AccountRules;
 import com.nabin.bankingwallet.account.AccountService;
 import com.nabin.bankingwallet.common.exception.InsufficientFundsException;
 import com.nabin.bankingwallet.common.util.MoneyUtils;
+import com.nabin.bankingwallet.idempotency.IdempotencyService;
+import com.nabin.bankingwallet.idempotency.IdempotencyUtils;
 import com.nabin.bankingwallet.transaction.dto.request.MoneyRequest;
 import com.nabin.bankingwallet.transaction.dto.response.TransactionResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +21,48 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 public class TransactionService {
+
     private final TransactionRepository transactionRepository;
     private final AccountService accountService;
     private final AccountRules accountRules;
+    private final IdempotencyService idempotencyService;
+    private final IdempotencyUtils idempotencyUtils;
 
     @Transactional
-    public TransactionResponse deposit(Long userId, Long accountId, MoneyRequest moneyRequest) {
+    public TransactionResponse deposit(Long userId, Long accountId, MoneyRequest moneyRequest,
+                                       String idempotencyKey) {
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            return executeDeposit(userId, accountId, moneyRequest);
+        }
+
+        String requestHash = idempotencyUtils.generateHash(moneyRequest);
+        return idempotencyService.execute(
+                userId,
+                idempotencyKey.trim(),
+                requestHash,
+                TransactionResponse.class,
+                () -> executeDeposit(userId, accountId, moneyRequest));
+    }
+
+    @Transactional
+    public TransactionResponse withdraw(Long userId, Long accountId, MoneyRequest moneyRequest,
+                                        String idempotencyKey) {
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            return executeWithdraw(userId, accountId, moneyRequest);
+        }
+
+        String requestHash = idempotencyUtils.generateHash(moneyRequest);
+        return idempotencyService.execute(
+                userId,
+                idempotencyKey.trim(),
+                requestHash,
+                TransactionResponse.class,
+                () -> executeWithdraw(userId, accountId, moneyRequest));
+    }
+
+    /** The actual deposit logic. Runs inside the idempotency transaction. */
+    @Transactional
+    public TransactionResponse executeDeposit(Long userId, Long accountId, MoneyRequest moneyRequest) {
         BigDecimal amount = MoneyUtils.normalize(moneyRequest.amount());
         Account account = accountService.getOwnedForUpdate(accountId, userId);
         accountRules.assertActive(account);
@@ -40,8 +78,9 @@ public class TransactionService {
         return TransactionResponse.fromTransaction(transactionRepository.save(entry));
     }
 
+    /** The actual withdrawal logic. Runs inside the idempotency transaction. */
     @Transactional
-    public TransactionResponse withdraw(Long userId, Long accountId, MoneyRequest moneyRequest) {
+    public TransactionResponse executeWithdraw(Long userId, Long accountId, MoneyRequest moneyRequest) {
         BigDecimal amount = MoneyUtils.normalize(moneyRequest.amount());
         Account account = accountService.getOwnedForUpdate(accountId, userId);
 

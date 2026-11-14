@@ -10,7 +10,9 @@ import org.hibernate.type.SqlTypes;
 import java.time.Instant;
 
 @Entity
-@Table(name = "idempotency_keys")
+@Table(name = "idempotency_keys", indexes = {
+    @Index(name = "idx_idempotency_user_key", columnList = "user_id, key_value", unique = true)
+})
 @Getter
 @Setter
 @NoArgsConstructor
