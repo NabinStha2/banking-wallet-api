@@ -35,11 +35,10 @@ public class TransactionService {
             return executeDeposit(userId, accountId, moneyRequest);
         }
 
-        String requestHash = idempotencyUtils.generateHash(moneyRequest);
         return idempotencyService.execute(
                 userId,
                 idempotencyKey.trim(),
-                requestHash,
+                idempotencyUtils.generateHash(moneyRequest),
                 TransactionResponse.class,
                 () -> executeDeposit(userId, accountId, moneyRequest));
     }
@@ -51,11 +50,10 @@ public class TransactionService {
             return executeWithdraw(userId, accountId, moneyRequest);
         }
 
-        String requestHash = idempotencyUtils.generateHash(moneyRequest);
         return idempotencyService.execute(
                 userId,
                 idempotencyKey.trim(),
-                requestHash,
+                idempotencyUtils.generateHash(moneyRequest),
                 TransactionResponse.class,
                 () -> executeWithdraw(userId, accountId, moneyRequest));
     }

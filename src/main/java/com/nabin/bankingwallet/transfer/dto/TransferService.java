@@ -43,11 +43,10 @@ public class TransferService {
             return executeTransfer(userId, transferRequest);
         }
 
-        String requestHash = idempotencyUtils.generateHash(transferRequest);
         return idempotencyService.execute(
                 userId,
                 idempotencyKey.trim(),
-                requestHash,
+                idempotencyUtils.generateHash(transferRequest),
                 TransferResponse.class,
                 () -> executeTransfer(userId, transferRequest));
     }
@@ -76,16 +75,13 @@ public class TransferService {
         Account from = pair[0];
         Account to = pair[1];
 
-        if (fromAccount
-                .getId()
-                .equals(toAccount.getId())) {
+        // Use LOCKED accounts for all validation to ensure consistency
+        if (from.getId().equals(to.getId())) {
             throw new BusinessException(HttpStatus.UNPROCESSABLE_CONTENT, "SELF_TRANSFER",
                     "Cannot transfer to the same account");
         }
 
-        if (!from
-                .getCurrency()
-                .equals(to.getCurrency())) {
+        if (!from.getCurrency().equals(to.getCurrency())) {
             throw new BusinessException(HttpStatus.UNPROCESSABLE_CONTENT, "CURRENCY_MISMATCH",
                     "Cannot transfer between accounts with different currencies");
         }
