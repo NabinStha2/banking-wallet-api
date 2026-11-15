@@ -48,6 +48,12 @@ public class EmailVerificationToken {
     @Column(name = "used_at")
     private Instant usedAt;
 
+    /**
+     * Optimistic-lock column.
+     */
+    @Version
+    private Long version;
+
     @PrePersist
     void onCreate() {
         if (createdAt == null) {

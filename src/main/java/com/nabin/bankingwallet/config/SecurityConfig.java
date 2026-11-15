@@ -5,6 +5,7 @@ import com.nabin.bankingwallet.security.RestAccessDeniedHandler;
 import com.nabin.bankingwallet.security.RestAuthenticationEntryPoint;
 import com.nabin.bankingwallet.user.Role;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -37,6 +38,9 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final RestAccessDeniedHandler restAccessDeniedHandler;
+
+    @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:8080}")
+    private String[] allowedOrigins;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -81,16 +85,14 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Only these origins may call the API from a browser.
-        // Update this list as your frontend domains change.
-        configuration.setAllowedOrigins(
-                Arrays.asList("http://localhost:3000", "http://localhost:8080",
-                              "https://yourdomain.com"));
+        // Configured via app.cors.allowed-origins (comma-separated).
+        // Defaults to localhost for dev; production MUST override.
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
 
         configuration.setAllowedMethods(
                 Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type", "Idempotency-Key"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

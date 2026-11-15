@@ -3,6 +3,7 @@ package com.nabin.bankingwallet.transaction;
 import com.nabin.bankingwallet.account.Account;
 import com.nabin.bankingwallet.account.AccountRules;
 import com.nabin.bankingwallet.account.AccountService;
+import com.nabin.bankingwallet.audit.AuditService;
 import com.nabin.bankingwallet.common.exception.InsufficientFundsException;
 import com.nabin.bankingwallet.common.util.MoneyUtils;
 import com.nabin.bankingwallet.idempotency.IdempotencyService;
@@ -27,6 +28,7 @@ public class TransactionService {
     private final AccountRules accountRules;
     private final IdempotencyService idempotencyService;
     private final IdempotencyUtils idempotencyUtils;
+    private final AuditService auditService;
 
     @Transactional
     public TransactionResponse deposit(Long userId, Long accountId, MoneyRequest moneyRequest,
@@ -73,7 +75,13 @@ public class TransactionService {
                 .randomUUID()
                 .toString(), moneyRequest.description());
 
-        return TransactionResponse.fromTransaction(transactionRepository.save(entry));
+        TransactionResponse response = TransactionResponse.fromTransaction(transactionRepository.save(entry));
+
+        // Best-effort audit
+        auditService.record(userId, "DEPOSIT", "Transaction", account.getId(),
+                            "amount=" + amount + ",reference=" + response.id());
+
+        return response;
     }
 
     /** The actual withdrawal logic. Runs inside the idempotency transaction. */
@@ -94,6 +102,12 @@ public class TransactionService {
                 .randomUUID()
                 .toString(), moneyRequest.description());
 
-        return TransactionResponse.fromTransaction(transactionRepository.save(entry));
+        TransactionResponse response = TransactionResponse.fromTransaction(transactionRepository.save(entry));
+
+        // Best-effort audit
+        auditService.record(userId, "WITHDRAWAL", "Transaction", account.getId(),
+                            "amount=" + amount + ",reference=" + response.id());
+
+        return response;
     }
 }

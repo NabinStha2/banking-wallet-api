@@ -54,6 +54,12 @@ public class User {
     @Column(name = "last_login")
     private Instant lastLogin;
 
+    /**
+     * Optimistic-lock column. Updated on every entity change.
+     */
+    @Version
+    private Long version;
+
     @PrePersist
     void onCreate() {
         createdAt = Instant.now();

@@ -39,8 +39,10 @@ public class AccountRules {
                 .atStartOfDay(ZoneOffset.UTC)
                 .toInstant();
 
-        BigDecimal used = transactionRepository.sumOutgoingSince(account.getId(), List.of(
-                                                                         TransactionType.DEPOSIT, TransactionType.WITHDRAWAL, TransactionType.TRANSFER_OUT),
+        // Daily limit applies only to money LEAVING the account. Deposits are incoming
+// and must not consume the outgoing limit.
+BigDecimal used = transactionRepository.sumOutgoingSince(account.getId(), List.of(
+                                                                         TransactionType.WITHDRAWAL, TransactionType.TRANSFER_OUT),
                                                                  startOfDay);
 
         if (used == null) {

@@ -2,6 +2,7 @@ package com.nabin.bankingwallet.account;
 
 import com.nabin.bankingwallet.account.dto.request.CreateAccountRequest;
 import com.nabin.bankingwallet.account.dto.response.AccountResponse;
+import com.nabin.bankingwallet.audit.AuditService;
 import com.nabin.bankingwallet.common.exception.ResourceNotFoundException;
 import com.nabin.bankingwallet.common.util.AccountNumberGenerator;
 import com.nabin.bankingwallet.user.UserRepository;
@@ -17,6 +18,7 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final AccountNumberGenerator accountNumberGenerator;
+    private final AuditService auditService;
 
     @Transactional
     public AccountResponse createAccount(Long userId, CreateAccountRequest createAccountRequest) {
@@ -24,14 +26,16 @@ public class AccountService {
         account.setCurrency(createAccountRequest.currency());
         account.setUser(userRepository.getReferenceById(userId));
 
-        String number;
-        do {
-            number = accountNumberGenerator.generateAccountNumber();
-        } while (accountRepository.existsByAccountNumber((number)));
+        String number = accountNumberGenerator.generateUniqueNumber(accountRepository::existsByAccountNumber);
 
         account.setAccountNumber(number);
 
         accountRepository.save(account);
+
+        // Best-effort audit
+        auditService.record(userId, "ACCOUNT_CREATE", "Account", account.getId(),
+                            "currency=" + account.getCurrency() + ",number=" + account.getAccountNumber());
+
         return AccountResponse.fromAccount(account);
     }
 

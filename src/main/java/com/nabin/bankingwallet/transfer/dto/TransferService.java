@@ -3,6 +3,7 @@ package com.nabin.bankingwallet.transfer.dto;
 import com.nabin.bankingwallet.account.Account;
 import com.nabin.bankingwallet.account.AccountRepository;
 import com.nabin.bankingwallet.account.AccountRules;
+import com.nabin.bankingwallet.audit.AuditService;
 import com.nabin.bankingwallet.common.exception.BusinessException;
 import com.nabin.bankingwallet.common.exception.ResourceNotFoundException;
 import com.nabin.bankingwallet.common.util.MoneyUtils;
@@ -32,6 +33,7 @@ public class TransferService {
     private final TransactionRepository transactionRepository;
     private final IdempotencyService idempotencyService;
     private final IdempotencyUtils idempotencyUtils;
+    private final AuditService auditService;
 
     /**
      * Runs the transfer under an idempotency key when the client supplies one.
@@ -108,6 +110,11 @@ public class TransferService {
         transactionRepository.save(
                 Transaction.of(to, TransactionType.TRANSFER_IN, amount,
                                from.getId(), reference, transferRequest.description()));
+
+        // Best-effort audit
+        auditService.record(userId, "TRANSFER", "Transfer", from.getId(),
+                            "fromAccount=" + from.getId() + ",toAccount=" + to.getId()
+                            + ",amount=" + amount + ",reference=" + reference);
 
         return new TransferResponse(
                 reference,
