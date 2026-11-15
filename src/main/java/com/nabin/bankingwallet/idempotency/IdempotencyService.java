@@ -114,10 +114,20 @@ public class IdempotencyService {
      * Deletes the key in a NEW transaction so it commits even if the caller's
      * transaction rolls back. This is essential for cleaning up IN_PROGRESS
      * markers on business failures without leaving stale rows.
+     *
+     * <p>Failures are logged and rethrown: if the cleanup itself fails, the
+     * caller's transaction rolls back, which also undoes the IN_PROGRESS row
+     * inserted earlier in this method, so the client can safely retry.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void deleteKey(IdempotencyKey key) {
-        repository.delete(key);
+        try {
+            repository.delete(key);
+        } catch (RuntimeException e) {
+            log.error("Failed to delete idempotency key user={} key={}",
+                      key.getUserId(), key.getKeyValue(), e);
+            throw e;
+        }
     }
 
     /** The unit of business work that must run exactly once per idempotency key. */

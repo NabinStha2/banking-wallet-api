@@ -40,8 +40,8 @@ public class AccountRules {
                 .toInstant();
 
         BigDecimal used = transactionRepository.sumOutgoingSince(account.getId(), List.of(
-                TransactionType.DEPOSIT, TransactionType.WITHDRAWAL,
-                TransactionType.TRANSFER_IN, TransactionType.TRANSFER_OUT), startOfDay);
+                                                                         TransactionType.DEPOSIT, TransactionType.WITHDRAWAL, TransactionType.TRANSFER_OUT),
+                                                                 startOfDay);
 
         if (used == null) {
             used = BigDecimal.ZERO;

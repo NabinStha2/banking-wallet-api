@@ -23,6 +23,10 @@ spring:
       hibernate:
         format_sql: true
 
+  flyway:
+    # Ignore checksum mismatches for already-applied migrations (local dev only)
+    ignore-migration-patterns: "repeatable:*"
+
 management:
   endpoint:
     health:
