@@ -49,8 +49,7 @@ public class TransactionQueryService {
             Long accountId,
             TransactionFilter filter,
             Pageable pageable
-
-                                                    ) {
+    ) {
         Specification<Transaction> spec = Specification
                 .where(TransactionSpecifications.forAccount(accountId))
                 .and(TransactionSpecifications.forFilter(filter));

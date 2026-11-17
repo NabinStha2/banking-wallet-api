@@ -3,6 +3,7 @@ package com.nabin.bankingwallet.transaction;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -27,6 +28,12 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("since")
             Instant since);
 
+    /**
+     * Eagerly fetch the owning account so the history endpoint does not
+     * trigger a lazy-load per row (N+1). {@code account} is otherwise LAZY
+     * and {@code TransactionResponse.fromTransaction} reads its id.
+     */
+    @EntityGraph(attributePaths = {"account"})
     Page<Transaction> findAll(Specification<Transaction> spec, Pageable pageable);
 
 }

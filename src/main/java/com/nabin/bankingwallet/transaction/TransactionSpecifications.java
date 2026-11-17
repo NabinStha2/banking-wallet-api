@@ -12,20 +12,30 @@ public final class TransactionSpecifications {
     private TransactionSpecifications() {
     }
 
+    /**
+     * Always-true predicate used as a no-op so {@code Specification.where(...).and(...)}
+     * never receives null. Returning null breaks the chain with
+     * "Specification must not be null".
+     */
+    private static final Specification<Transaction> ALWAYS_TRUE =
+            (root, query, cb) -> cb.conjunction();
+
     public static Specification<Transaction> forAccount(Long accountId) {
-        return accountId == null ? null :
-               (root, query, criteriaBuilder) -> criteriaBuilder.equal(root
-                                                                       .get("account")
-                                                                       .get("id"),
-                                                                       accountId);
+        if (accountId == null) {
+            return ALWAYS_TRUE;
+        }
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root
+                .get("account")
+                .get("id"),
+                accountId);
     }
 
     public static Specification<Transaction> forFilter(TransactionFilter filter) {
         if (filter == null) {
-            return null;
+            return ALWAYS_TRUE;
         }
         return Specification
-                .where(hasType(filter.transactionType()))
+                .where(hasType(filter.type()))
                 .and(minAmount(filter.minAmount()))
                 .and(maxAmount(filter.maxAmount()))
                 .and(createdFrom(filter.fromDate()))
@@ -33,24 +43,25 @@ public final class TransactionSpecifications {
     }
 
     private static Specification<Transaction> hasType(TransactionType type) {
-        return type == null ? null : (root, query, cb) -> cb.equal(root.get("type"), type);
+        return type == null ? ALWAYS_TRUE
+                            : (root, query, cb) -> cb.equal(root.get("type"), type);
     }
 
     private static Specification<Transaction> minAmount(BigDecimal min) {
-        return min == null ? null
+        return min == null ? ALWAYS_TRUE
                            :
                (root, query, cb) -> cb.greaterThanOrEqualTo(root.<BigDecimal>get("amount"), min);
     }
 
     private static Specification<Transaction> maxAmount(BigDecimal max) {
-        return max == null ? null
+        return max == null ? ALWAYS_TRUE
                            :
                (root, query, cb) -> cb.lessThanOrEqualTo(root.<BigDecimal>get("amount"), max);
     }
 
     private static Specification<Transaction> createdFrom(LocalDate from) {
         if (from == null) {
-            return null;
+            return ALWAYS_TRUE;
         }
         Instant start = from
                 .atStartOfDay(ZoneOffset.UTC)
@@ -63,7 +74,7 @@ public final class TransactionSpecifications {
      */
     private static Specification<Transaction> createdBefore(LocalDate to) {
         if (to == null) {
-            return null;
+            return ALWAYS_TRUE;
         }
         Instant end = to
                 .plusDays(1)
