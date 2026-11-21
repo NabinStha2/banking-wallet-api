@@ -9,8 +9,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 
 public final class TransactionSpecifications {
-    private TransactionSpecifications() {
-    }
+    private TransactionSpecifications() {}
 
     /**
      * Always-true predicate used as a no-op so {@code Specification.where(...).and(...)}
