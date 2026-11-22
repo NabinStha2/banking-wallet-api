@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
@@ -36,4 +37,22 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @EntityGraph(attributePaths = {"account"})
     Page<Transaction> findAll(Specification<Transaction> spec, Pageable pageable);
 
+    @Query("""
+            select coalesce(sum(case when t.type in ('DEPOSIT', 'TRANSFER_IN') then t.amount when t.type in ('WITHDRAWAL', 'TRANSFER_OUT') then -t.amount else 0 end) , 0)
+                        from Transaction t where t.account.id = :accountId and t.createdAt < :fromInstant
+            """)
+    BigDecimal sumNetBefore(
+            @Param("accountId")
+            Long accountId,
+            @Param("fromInstant")
+            Instant fromInstant);
+
+    @EntityGraph(attributePaths = {"account"})
+    List<Transaction> findByAccount_IdAndCreatedAtBetweenOrderByCreatedAtAscIdAsc(
+            @Param("accountId")
+            Long accountId,
+            @Param("fromInstant")
+            Instant fromInstant,
+            @Param("toInstant")
+            Instant toInstant);
 }

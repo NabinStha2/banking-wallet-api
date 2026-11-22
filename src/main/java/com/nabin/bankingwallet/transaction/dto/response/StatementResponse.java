@@ -6,6 +6,7 @@ import java.util.List;
 
 public record StatementResponse(
         String accountNumber,
+        String currency,
         LocalDate from,
         LocalDate to,
         BigDecimal openingBalance,
